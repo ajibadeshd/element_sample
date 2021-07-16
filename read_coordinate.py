@@ -7,54 +7,65 @@ This is a temporary script file.
 import os
 import getopt
 import sys
+from periodictable import elements as el
 
 
 def help():
     print("read_coordinate.py -o <output file name format>")
-    
-def read_write(file):
 
-    #fin = open("/home/saheed/Downloads/Si_bulk8.out")
-    cwd = os.getcwd()
-    file_name = cwd+"/"+file
-    fin = open(file_name)
-    read = False
+
+                
+def cp2k():
+    pass
     
+def read_write(file, cwd):
+    
+    file_name = os.path.join(cwd,file)
     outdir = os.path.join(cwd, "OUTPUT")
     outfile = os.path.join(outdir, file+".txt")
+    fin = open(file_name)
     fout = open(outfile, 'w')
-    #fout = open(file_name+".txt", 'w')
-    
-    i = 0
-    if "CRYSTAL\n" in fin.readlines():
-        print("yes")
-        sys.exit()
+    read = False
+
+    # Check file format type
     for line in fin:
-            
         if "CRYSTAL" in line:
+            print(outfile)
+            i = 0
+            for line in fin:
+                print(line+"fahafkafljlj")
+                if "# Atom   Kind   Element" in line:
+                    read = True
+                if 'SUM OF ATOMIC FORCES' in line:
+                    break
+                if read:
+                    print("What is going on")
+                    i +=1
+                    if i >1:
+                        fout.write(line[20:-1])
+                        print(fout.write(line[20:-1]))
+                        fout.write("\n")
+                        print(line[20:-1])
+                #fin.close()
+                break
             break
-        if "# Atom   Kind   Element" in line:
-            read = True
-        if 'SUM OF ATOMIC FORCES' in line:
-            break
-        if read:
-            i +=1
-            if i >1:
-                fout.write(line[20:-1])
-                fout.write("\n")
-                print(line[20:-1])
+            
+        
+
+
                 
-        # THIS IS FOR CRYSTAL FILE FORMAT       
-        if "CARTESIAN FORCES IN HARTREE/BOHR" in line:
-            read = True
-        if 'RESULTANT FORCE' in line:
-            break
-        if read:
-            i +=1
-            if i >2:
-                fout.write(line[20:-1])
-                fout.write("\n")
-                print(line[20:-1])
+'''    # THIS IS FOR CRYSTAL FILE FORMAT       
+    if "CARTESIAN FORCES IN HARTREE/BOHR" in line:
+        read = True
+    if 'RESULTANT FORCE' in line:
+        #break
+        pass
+    if read:
+        i +=1
+        if i >2:
+            fout.write(line[20:-1])
+            fout.write("\n")
+            print(line[20:-1])
     fin.close()
     #fout.close()
     
@@ -82,9 +93,8 @@ def read_write(file):
     if os.stat(outfile).st_size == 0:
         os.system("rm "+outfile)
 
-
+    '''
 def main(argv):
-
     try:
         opts, args = getopt.getopt(argv,"o:h",["odir =","help"])
     except getopt.GetoptError:
@@ -105,11 +115,11 @@ def main(argv):
         os.system("mkdir "+"OUTPUT")
     
 
-    
+    cwd = os.getcwd()  
     # We start looping through the files in the directory
     for file in os.listdir():
         if ".out" in file:
-            read_write(file )
-    
+            read_write(file, cwd)
+  
 if __name__ == "__main__":
     main(sys.argv[1:])
