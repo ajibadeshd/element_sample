@@ -14,41 +14,97 @@ def help():
     print("read_coordinate.py -o <output file name format>")
 
 
-                
-def cp2k():
-    pass
-    
-def read_write(file, cwd):
-    
-    file_name = os.path.join(cwd,file)
-    outdir = os.path.join(cwd, "OUTPUT")
-    outfile = os.path.join(outdir, file+".txt")
-    fin = open(file_name)
+def crystal(infile, outfile):
+    fin = open(infile)
     fout = open(outfile, 'w')
     read = False
 
+    ENERGY = ''
+    i = 0
+    for line in fin:
+        if "CARTESIAN FORCES IN HARTREE/BOHR" in line:
+            read = True
+        if 'RESULTANT FORCE' in line:
+            break
+        if read:
+            i +=1
+            if i >2:
+                fout.write(line[7:-1])
+                fout.write("\n")
+                print(line[7:-1])
+    #fin.close()
+    #fout.close()
+        if 'Total FORCE_EVAL' in line:
+            ENERGY = "ENERGY "+line[61:-1]                
+            print ("ENERGY "+line[61:-1])
+        if 'SUM OF ATOMIC FORCES' in line:
+            break
+    fout.write(ENERGY )
+    fin.close()
+    fout.close()
+    
+    
+def CP2K(infile, outfile_path):
+    fin = open(infile)
+    fout = open(outfile_path, 'w')
+    read = False
+
+    ENERGY = ''
+    i = 0
+    for line in fin:
+        if "# Atom   Kind   Element" in line:
+            #print("line")
+            read = True
+        if 'Total FORCE_EVAL' in line:
+            ENERGY = "ENERGY "+line[61:-1]                
+            #print ("ENERGY "+line[61:-1])
+        if 'SUM OF ATOMIC FORCES' in line:
+            break
+        if read:
+            i +=1
+            if i >1:
+                fout.write(line[20:-1])
+                fout.write("\n")
+                #print(line[20:-1])
+
+    fout.write(ENERGY )
+    fin.close()
+    fout.close()
+
+
+def cp2k():
+    pass
+
+
+def read_write(file, cwd):
+    
+    infile = os.path.join(cwd,file)
+    outfile = file+".txt"
+    outdir = os.path.join(cwd, "OUTPUT")
+    outfile_path = os.path.join(outdir, outfile)
+    print(outfile_path)
+    
+    fin = open(infile)
     # Check file format type
     for line in fin:
-        if "CRYSTAL" in line:
-            print(outfile)
-            i = 0
-            for line in fin:
-                print(line+"fahafkafljlj")
-                if "# Atom   Kind   Element" in line:
-                    read = True
-                if 'SUM OF ATOMIC FORCES' in line:
-                    break
-                if read:
-                    print("What is going on")
-                    i +=1
-                    if i >1:
-                        fout.write(line[20:-1])
-                        print(fout.write(line[20:-1]))
-                        fout.write("\n")
-                        print(line[20:-1])
-                #fin.close()
-                break
+        #print(line)
+        if "CP2K" in line:
+            #print(line)
+            #print(outfile)
+            fin.close()
+            CP2K(infile, outfile_path)
+            #print(outfile_path)
+            #print(outdir)
             break
+        
+        if "CRYSTAL" in line:
+            #print(outfile)
+            i = 0
+            fin.close()
+            crystal(infile, outfile_path)
+            break
+
+        
             
         
 
@@ -112,13 +168,15 @@ def main(argv):
         pass
     else:
         #Create an OUTPUT dir
-        os.system("mkdir "+"OUTPUT")
+        os.system("mkdir OUTPUT")
     
-
     cwd = os.getcwd()  
+    
     # We start looping through the files in the directory
     for file in os.listdir():
         if ".out" in file:
+            print(type(file))
+            #sys.exit(2)
             read_write(file, cwd)
   
 if __name__ == "__main__":
